@@ -4,10 +4,16 @@
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
         >
-    <TextView
+    <Button
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Hello World, MainActivity"
-            />
+            android:text="尝试登录"
+            android:id="@+id/StartButton" android:layout_gravity="center_horizontal"/>
+    <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:id="@+id/LogArea" android:layout_gravity="center_horizontal"
+            android:scrollbars="vertical"/>
 </LinearLayout>
 
