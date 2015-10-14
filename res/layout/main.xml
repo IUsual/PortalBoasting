@@ -4,11 +4,12 @@
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
         >
-    <Button
+    <ToggleButton
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="尝试登录"
-            android:id="@+id/StartButton" android:layout_gravity="center_horizontal"/>
+            android:textOff="尝试登录"
+            android:textOn="停止"
+            android:id="@+id/StartButton" android:layout_gravity="center_horizontal" android:checked="false"/>
     <TextView
             android:layout_width="fill_parent"
             android:layout_height="match_parent"

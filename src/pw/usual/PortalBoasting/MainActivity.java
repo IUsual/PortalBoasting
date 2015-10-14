@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -28,7 +29,7 @@ public class MainActivity extends Activity {
     /**
      * Called when the activity is first created.
      */
-    private Button startButton;
+    private ToggleButton startButton;
     private TextView logArea;
 
     private Handler handler;
@@ -39,8 +40,18 @@ public class MainActivity extends Activity {
         public void onClick(View v) {
             Log.i("StartButton", "Click.");
 
-            for (int i=0; i<10000;i++){
-                pool.execute(new AttemptThread(handler, String.valueOf(70200000+i), "123456"));
+            ToggleButton button = (ToggleButton) v;
+
+            if (button.isChecked()){
+                if (pool.isShutdown()){
+                    pool = Executors.newSingleThreadExecutor();
+                }
+                for (int i=0; i<10000;i++){
+                    pool.execute(new AttemptThread(handler, String.valueOf(70200000+i), "123456"));
+                }
+            }
+            else{
+                pool.shutdownNow();
             }
         }
     };
@@ -50,7 +61,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        startButton = (Button) findViewById(R.id.StartButton);
+        startButton = (ToggleButton) findViewById(R.id.StartButton);
         logArea = (TextView) findViewById(R.id.LogArea);
         handler = new MyHandler();
         pool = Executors.newSingleThreadExecutor();
@@ -113,8 +124,9 @@ public class MainActivity extends Activity {
             switch (message.what){
                 case 0x56:{
                     Log.i("MessageHandle", String.valueOf(message.arg1) + " " + (String) message.obj);
-                    if (message.obj.equals("succeed")){
+                    if (message.obj.equals("timeout")){
                         pool.shutdownNow();
+                        startButton.setChecked(false);
 
                         Toast.makeText(MainActivity.this, "User " + String.valueOf(message.arg1) + " login successed", Toast.LENGTH_LONG).show();
                     }
