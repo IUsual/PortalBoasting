@@ -12,9 +12,10 @@
             android:id="@+id/StartButton" android:layout_gravity="center_horizontal" android:checked="false"/>
     <TextView
             android:layout_width="fill_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:id="@+id/LogArea" android:layout_gravity="center_horizontal"
-            android:scrollbars="vertical"/>
+            android:scrollbars="vertical"
+            android:singleLine="false"/>
 </LinearLayout>
 

@@ -4,9 +4,10 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Editable;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -34,6 +35,7 @@ public class MainActivity extends Activity {
 
     private Handler handler;
     private ExecutorService pool;
+    private Editable logText;
 
     private View.OnClickListener onStartButtonClick = new View.OnClickListener() {
         @Override
@@ -46,7 +48,7 @@ public class MainActivity extends Activity {
                 if (pool.isShutdown()){
                     pool = Executors.newSingleThreadExecutor();
                 }
-                for (int i=0; i<10000;i++){
+                for (int i=1; i<10000;i++){
                     pool.execute(new AttemptThread(handler, String.valueOf(70200000+i), "123456"));
                 }
             }
@@ -65,6 +67,10 @@ public class MainActivity extends Activity {
         logArea = (TextView) findViewById(R.id.LogArea);
         handler = new MyHandler();
         pool = Executors.newSingleThreadExecutor();
+
+        logArea.setText(logArea.getText(), TextView.BufferType.EDITABLE);
+        logText = (Editable) logArea.getText();
+        logArea.setMovementMethod(ScrollingMovementMethod.getInstance());
 
         startButton.setOnClickListener(onStartButtonClick);
     }
@@ -123,7 +129,10 @@ public class MainActivity extends Activity {
         public void handleMessage(Message message){
             switch (message.what){
                 case 0x56:{
-                    Log.i("MessageHandle", String.valueOf(message.arg1) + " " + (String) message.obj);
+                    Log.i("MessageHandle", String.valueOf(message.arg1) + " " + message.obj);
+
+                    logText.append(String.valueOf(message.arg1) + " " + message.obj + "\n");
+
                     if (message.obj.equals("timeout")){
                         pool.shutdownNow();
                         startButton.setChecked(false);
