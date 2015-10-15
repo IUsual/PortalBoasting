@@ -45,6 +45,7 @@ public class MainActivity extends Activity {
             ToggleButton button = (ToggleButton) v;
 
             if (button.isChecked()){
+                logText.clear();
                 if (pool.isShutdown()){
                     pool = Executors.newSingleThreadExecutor();
                 }
