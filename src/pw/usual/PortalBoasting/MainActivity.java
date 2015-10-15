@@ -2,20 +2,16 @@ package pw.usual.PortalBoasting;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.CoreConnectionPNames;
@@ -24,6 +20,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -37,7 +34,7 @@ public class MainActivity extends Activity {
     private TextView logArea;
     private ScrollView scrollView;
 
-    private Handler handler;
+
     private ExecutorService pool;
     public boolean suspend = false;
     private Thread netThread = null;
@@ -49,7 +46,7 @@ public class MainActivity extends Activity {
             ToggleButton button = (ToggleButton) v;
 
             if (button.isChecked()){
-//                logArea.setText("");
+                logArea.setText("");
                 if (null == netThread){
                     netThread = new AttemptThread();
                     netThread.start();
@@ -70,7 +67,6 @@ public class MainActivity extends Activity {
         startButton = (ToggleButton) findViewById(R.id.StartButton);
         logArea = (TextView) findViewById(R.id.LogArea);
         scrollView = (ScrollView) findViewById(R.id.ScrollView);
-        handler = new MyHandler();
         pool = Executors.newSingleThreadExecutor();
 
         startButton.setOnClickListener(onStartButtonClick);
@@ -117,11 +113,20 @@ public class MainActivity extends Activity {
                     if (httpResponse.getStatusLine().getStatusCode() == 200) {
                         stringResponse = EntityUtils.toString(httpResponse.getEntity());
                         JSONObject json = new JSONObject(stringResponse);
-                        String status = (String) new JSONObject((String) json.get("data")).get("status");
+                        final String status = (String) new JSONObject((String) json.get("data")).get("status");
 
-                        Message message = handler.obtainMessage(0x56, status);
-                        message.arg1 = user;
-                        message.sendToTarget();
+                        final String log = String.valueOf(user) + " " + status + "\n";
+                        logArea.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                logArea.append(log);
+                                scrollView.fullScroll(View.FOCUS_DOWN);
+                            }
+                        });
+
+                        if (status.equals("connected")){
+                            break;
+                        }
                     }
                     else {
                         Log.e("Error", "Http response is " + String.valueOf(httpResponse.getStatusLine().getStatusCode()));
@@ -130,60 +135,28 @@ public class MainActivity extends Activity {
                 catch (JSONException e){
                     Log.e("JsonException", stringResponse);
                 }
+                catch (SocketTimeoutException e){
+                    Log.e("SocketTimeOut", String.valueOf(user));
+
+                    logArea.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            logArea.append(String.valueOf(user) + " timeout");
+                        }
+                    });
+                }
                 catch (Exception e) {
                     Log.e("Error", e.getClass().toString());
                 }
-
-                while (suspend){
-                    try {
-                        Thread.sleep(1000);
-                        Log.i("HeartBeat", String.valueOf(System.currentTimeMillis()));
-                    }
-                    catch (InterruptedException e){
-                        Log.e("Error", e.getClass().toString());
-                    }
-                };
             }
-        }
-    }
 
-    private class MyHandler extends Handler{
-        @Override
-        public void handleMessage(Message message){
-            switch (message.what){
-                case 0x56:{
-                    Log.i("MessageHandle", String.valueOf(message.arg1) + " " + message.obj);
-
-                    if (message.obj.equals("connected")){
-                        suspend = true;
-                        startButton.setChecked(true);
-                    }
-
-                    logArea.append(String.valueOf(message.arg1) + " " + message.obj + "\n");
-                    scrollView.fullScroll(View.FOCUS_DOWN);
-
-//                    if (0 == message.arg1 % 10){
-//                        logArea.append(buffer);
-//                        buffer = "";
-//                    }
-//                    else {
-//                        buffer += String.valueOf(message.arg1) + " " + message.obj + "\n";
-//                    }
-
-//                    ScrollView::fullScroll(View.FOCUS_DOWN);
-
-//                    if (message.obj.equals("succeed")){
-//                        pool.shutdownNow();
-//                        startButton.setChecked(false);
-//
-//                        Toast.makeText(MainActivity.this, "User " + String.valueOf(message.arg1) + " login successed", Toast.LENGTH_LONG).show();
-//                    }
+            startButton.post(new Runnable() {
+                @Override
+                public void run() {
+                    logArea.append("");
+                    startButton.setChecked(false);
                 }
-                default:{
-                    break;
-                }
-            }
-            super.handleMessage(message);
+            });
         }
     }
 }
