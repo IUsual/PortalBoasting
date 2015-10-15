@@ -34,6 +34,7 @@ public class MainActivity extends Activity {
      */
     private ToggleButton startButton;
     private TextView logArea;
+    private ScrollView scrollView;
 
     private Handler handler;
     private ExecutorService pool;
@@ -67,6 +68,7 @@ public class MainActivity extends Activity {
 
         startButton = (ToggleButton) findViewById(R.id.StartButton);
         logArea = (TextView) findViewById(R.id.LogArea);
+        scrollView = (ScrollView) findViewById(R.id.ScrollView);
         handler = new MyHandler();
         pool = Executors.newSingleThreadExecutor();
 
@@ -140,7 +142,7 @@ public class MainActivity extends Activity {
     }
 
     private class MyHandler extends Handler{
-        private String buffer = "";
+        private int lineHeight = logArea.getLineHeight();
 
         @Override
         public void handleMessage(Message message){
@@ -149,6 +151,7 @@ public class MainActivity extends Activity {
                     Log.i("MessageHandle", String.valueOf(message.arg1) + " " + message.obj);
 
                     logArea.append(String.valueOf(message.arg1) + " " + message.obj + "\n");
+                    scrollView.fullScroll(View.FOCUS_DOWN);
 //                    if (0 == message.arg1 % 10){
 //                        logArea.append(buffer);
 //                        buffer = "";
