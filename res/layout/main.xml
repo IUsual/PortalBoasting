@@ -15,7 +15,6 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:id="@+id/LogArea" android:layout_gravity="center_horizontal"
-            android:scrollbars="vertical"
-            android:singleLine="false"/>
+            android:scrollbars="vertical"/>
 </LinearLayout>
 

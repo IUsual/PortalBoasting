@@ -71,6 +71,8 @@ public class MainActivity extends Activity {
         logArea.setText(logArea.getText(), TextView.BufferType.EDITABLE);
         logText = (Editable) logArea.getText();
         logArea.setMovementMethod(ScrollingMovementMethod.getInstance());
+        logArea.setFocusable(true);
+        logArea.requestFocus();
 
         startButton.setOnClickListener(onStartButtonClick);
     }
@@ -131,9 +133,14 @@ public class MainActivity extends Activity {
                 case 0x56:{
                     Log.i("MessageHandle", String.valueOf(message.arg1) + " " + message.obj);
 
+                    int height = logArea.getHeight();
                     logText.append(String.valueOf(message.arg1) + " " + message.obj + "\n");
 
-                    if (message.obj.equals("timeout")){
+                    if (logArea.getHeight() == height) {
+                        logArea.scrollBy(0, logArea.getLineHeight());
+                    }
+
+                    if (message.obj.equals("succeed")){
                         pool.shutdownNow();
                         startButton.setChecked(false);
 
