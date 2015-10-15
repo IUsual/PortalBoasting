@@ -8,7 +8,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textOff="尝试登录"
-            android:textOn="停止"
+            android:textOn="暂停"
             android:id="@+id/StartButton"
             android:layout_gravity="center_horizontal"
             android:checked="false"/>

