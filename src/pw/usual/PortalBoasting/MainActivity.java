@@ -4,10 +4,10 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.text.Editable;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -35,7 +35,6 @@ public class MainActivity extends Activity {
 
     private Handler handler;
     private ExecutorService pool;
-    private Editable logText;
 
     private View.OnClickListener onStartButtonClick = new View.OnClickListener() {
         @Override
@@ -45,7 +44,7 @@ public class MainActivity extends Activity {
             ToggleButton button = (ToggleButton) v;
 
             if (button.isChecked()){
-                logText.clear();
+                logArea.setText("");
                 if (pool.isShutdown()){
                     pool = Executors.newSingleThreadExecutor();
                 }
@@ -68,12 +67,6 @@ public class MainActivity extends Activity {
         logArea = (TextView) findViewById(R.id.LogArea);
         handler = new MyHandler();
         pool = Executors.newSingleThreadExecutor();
-
-        logArea.setText(logArea.getText(), TextView.BufferType.EDITABLE);
-        logText = (Editable) logArea.getText();
-        logArea.setMovementMethod(ScrollingMovementMethod.getInstance());
-        logArea.setFocusable(true);
-        logArea.requestFocus();
 
         startButton.setOnClickListener(onStartButtonClick);
     }
@@ -128,25 +121,30 @@ public class MainActivity extends Activity {
     }
 
     private class MyHandler extends Handler{
+        private String buffer = "";
+
         @Override
         public void handleMessage(Message message){
             switch (message.what){
                 case 0x56:{
                     Log.i("MessageHandle", String.valueOf(message.arg1) + " " + message.obj);
 
-                    int height = logArea.getHeight();
-                    logText.append(String.valueOf(message.arg1) + " " + message.obj + "\n");
-
-                    if (logArea.getHeight() == height) {
-                        logArea.scrollBy(0, logArea.getLineHeight());
+                    if (0 == message.arg1 % 10){
+                        logArea.append(buffer);
+                        buffer = "";
+                    }
+                    else {
+                        buffer += String.valueOf(message.arg1) + " " + message.obj + "\n";
                     }
 
-                    if (message.obj.equals("succeed")){
-                        pool.shutdownNow();
-                        startButton.setChecked(false);
+//                    ScrollView::fullScroll(View.FOCUS_DOWN);
 
-                        Toast.makeText(MainActivity.this, "User " + String.valueOf(message.arg1) + " login successed", Toast.LENGTH_LONG).show();
-                    }
+//                    if (message.obj.equals("succeed")){
+//                        pool.shutdownNow();
+//                        startButton.setChecked(false);
+//
+//                        Toast.makeText(MainActivity.this, "User " + String.valueOf(message.arg1) + " login successed", Toast.LENGTH_LONG).show();
+//                    }
                 }
                 default:{
                     break;
