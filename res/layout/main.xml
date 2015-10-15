@@ -9,13 +9,13 @@
             android:layout_height="wrap_content"
             android:textOff="尝试登录"
             android:textOn="暂停"
-            android:id="@+id/StartButton"
+            android:id="@+id/LoginButton"
             android:layout_gravity="center_horizontal"
             android:checked="false"/>
     <ScrollView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:id="@+id/ScrollView">
+            android:id="@+id/ScrollBar">
         <TextView
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
