@@ -131,16 +131,17 @@ public class MainActivity extends Activity {
                     if (httpResponse.getStatusLine().getStatusCode() == 200) {
                         stringResponse = EntityUtils.toString(httpResponse.getEntity());
                         JSONObject json = new JSONObject(stringResponse);
-                        String status = (String) new JSONObject((String) json.get("data")).get("status");
+                        JSONObject data = new JSONObject((String)json.get("data"));
+                        String status = (String) data.get("status");
 
                         log(user, status);
 
-                        if (status.equals("connected") || status.equals("success")){
+                        if (status.equals("connected")){
                             endWithLog("已连接.");
                             return;
                         }
                         else if (status.equals("success")){
-                            endWithLog("登录成果");
+                            endWithLog("登录成功.");
                             return;
                         }
                     }
