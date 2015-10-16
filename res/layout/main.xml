@@ -4,10 +4,24 @@
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
         >
-    <TextView
+    <ToggleButton
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Hello World, MainActivity"
-            />
+            android:textOff="尝试登录"
+            android:textOn="暂停"
+            android:id="@+id/LoginButton"
+            android:layout_gravity="center_horizontal"
+            android:checked="false"/>
+    <ScrollView
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/ScrollBar">
+        <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/LogArea"
+                android:layout_gravity="center_horizontal"/>
+    </ScrollView>
 </LinearLayout>
 
