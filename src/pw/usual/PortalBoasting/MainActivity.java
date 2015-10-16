@@ -21,8 +21,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class MainActivity extends Activity {
     /**
@@ -100,6 +99,9 @@ public class MainActivity extends Activity {
 
         private int []users = {70206044,70205971,70205746,70205743,70205695,70205696,70205456,70205433,70205432,70205410,70205342,70205340,70205331,70205332,70205277,70205155,70205057,70205036,70205034,70204963,70204959,70204952,70204946,70204937,70204880,70204858,70204795,70204723,70204691,70204664,70204665,70204632,70204616,70204596,70204545,70204320,70204314,70204215,70204075,70203975,70203945,70203944,70203912,70203734,70203521,70203443,70203299,70203110,70202991,70202878,70202636,70202578,70202579,70202279,70202031,70201850,70201829,70201776,70201739,70201516,70201463,70201316,70200748,70200340};
 
+        String []hints = {"正在擦亮手机屏幕", "正在为手机安装飞行模块", "正在搜索手机中的自拍", "正在往服务器上传短信", "正在入侵学校服务器", "正在想念土土土", "正在启动自爆模式", "正在偷看主人玩手机", "正在变身奥特曼", "正在盗取支付宝帐号"
+        };
+
         public AttemptThread(){
             httpPost = new HttpPost("http://w.nuaa.edu.cn/iPortal/action/doLogin.do");
             httpClient = new DefaultHttpClient();
@@ -116,6 +118,8 @@ public class MainActivity extends Activity {
 
         @Override
         public void run(){
+            showHints();
+
             for (int user : users) {
                 params.clear();
                 params.add(valueSaved);
@@ -181,6 +185,16 @@ public class MainActivity extends Activity {
             });
         }
 
+        private void log(String message){
+            logArea.post(new Runnable() {
+                @Override
+                public void run() {
+                    logArea.append(message);
+                    scrollBar.fullScroll(View.FOCUS_DOWN);
+                }
+            });
+        }
+
         private void endWithLog(String message){
             loginButton.post(new Runnable() {
                 @Override
@@ -189,6 +203,24 @@ public class MainActivity extends Activity {
                     loginButton.setChecked(false);
                 }
             });
+        }
+
+        private void showHints(){
+            for (int i=0;i<3;i++){
+                log(hints[(int)(Math.random() * hints.length)]);
+
+                for (int j=0;j<3;j++){
+                    log(".");
+
+                    try {
+                        Thread.sleep(200 * (4-i));
+                    }
+                    catch (InterruptedException e){
+
+                    }
+                }
+                log("\n");
+            }
         }
     }
 }
