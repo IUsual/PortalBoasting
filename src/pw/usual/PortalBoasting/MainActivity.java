@@ -135,8 +135,12 @@ public class MainActivity extends Activity {
 
                         log(user, status);
 
-                        if (status.equals("connected")){
-                            endWithLog("登录成功.");
+                        if (status.equals("connected") || status.equals("success")){
+                            endWithLog("已连接.");
+                            return;
+                        }
+                        else if (status.equals("success")){
+                            endWithLog("登录成果");
                             return;
                         }
                     }
